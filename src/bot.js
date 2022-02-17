@@ -3,10 +3,10 @@
 // RSS feed
 const RSS_URL = 'https://xkcd.com/rss.xml';
 
-//Initialize parser
-let Parser = require('rss-parser');
+// Initialize parser
+const Parser = require('rss-parser');
 
-//Initialize cron
+// Initialize cron
 const cron = require('cron');
 
 // Get Discord api
@@ -20,7 +20,7 @@ const client = new Discord.Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 const prefix = '+';
 
 // Create new Parser
-let parser = new Parser();
+const parser = new Parser();
 
 client.on('messageCreate', (message) => {
   // If message author is a bot Ignore them
@@ -45,68 +45,61 @@ client.on('messageCreate', (message) => {
   }
   if (command === 'comic') {
     (async () => {
-      let file = [];
-      
-      let feed = await parser.parseURL(RSS_URL);
-      feed.items.forEach(item => {
-        var res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
+      const file = [];
+
+      const feed = await parser.parseURL(RSS_URL);
+      feed.items.forEach((item) => {
+        const res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
         file.push(res);
       });
-      
+
       message.reply({
         files: file[0],
-      })
-      
-  
+      });
     })();
   }
 
   // Check feed
-  if(command === 'feed'){
+  if (command === 'feed') {
     (async () => {
-      let file = [];
-      
-      let feed = await parser.parseURL(RSS_URL);
-      feed.items.forEach(item => {
-        var res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
+      const file = [];
+
+      const feed = await parser.parseURL(RSS_URL);
+      feed.items.forEach((item) => {
+        const res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
         file.push(res);
       });
-      file.forEach(file =>{
+      file.forEach((f) => {
         message.reply({
-          files: file,
-        })
-      })
-
+          files: f,
+        });
+      });
     })();
-
   }
 });
 
-client.on('ready', client => {
-  client.channels.cache.get('943717767687864341').send('Hello here!');
-})
+client.on('ready', (c) => {
+  c.channels.cache.get('943717767687864341').send('Hello here!');
+});
 
-
-//Create new job which is supposed to run at 20:25:00 everyday.
-let feed = new cron.CronJob('00 43 21 * * *', function(){
+// Create new job which is supposed to run at 20:25:00 everyday.
+const xkcdJob = new cron.CronJob('00 43 21 * * *', (() => {
   (async () => {
-    let file = [];
-    
-    let feed = await parser.parseURL(RSS_URL);
-    feed.items.forEach(item => {
-      var res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
+    const file = [];
+
+    const feed = await parser.parseURL(RSS_URL);
+    feed.items.forEach((item) => {
+      const res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
       file.push(res);
     });
-    
+
     client.channels.cache.get('943717767687864341').send({
       files: file[0],
-    })
-    
-
+    });
   })();
-}, null, true, 'America/Los_Angeles');
+}), null, true, 'America/Los_Angeles');
 
-//Start sending to discord.
-feed.start();
+// Start sending to discord.
+xkcdJob.start();
 
 client.login(auth.token);
