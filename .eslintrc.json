@@ -12,6 +12,9 @@
     },
     "rules": {
         "no-unused-vars": "warn",
-        "no-console": "warn"
+        "no-console": "warn",
+        "no-underscore-dangle": "off",
+        "no-empty-function": "warn",
+        "no-param-reassign": "warn"
     }
 }
