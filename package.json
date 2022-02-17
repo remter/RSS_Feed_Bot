@@ -1,0 +1,8 @@
+{
+    "name":"RSS-Thief",
+    "version": "0.0.1",
+    "description": "This bot is supposed to read from XKCD's RSS feeds and post the images into a chat",
+    "main": "bot.js",
+    "author": "Krishna Chaitanya Addanki",
+    "dependencies": {}
+}
