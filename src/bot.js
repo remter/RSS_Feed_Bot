@@ -44,9 +44,21 @@ client.on('messageCreate', (message) => {
     message.reply(`Pong! This message had a latency of ${timeTaken}ms.`);
   }
   if (command === 'comic') {
-    message.reply({
-      files: ['https://imgs.xkcd.com/comics/rest_and_fluids.png'],
-    });
+    (async () => {
+      let file = [];
+      
+      let feed = await parser.parseURL(RSS_URL);
+      feed.items.forEach(item => {
+        var res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
+        file.push(res);
+      });
+      
+      message.reply({
+        files: file[0],
+      })
+      
+  
+    })();
   }
 
   // Check feed
