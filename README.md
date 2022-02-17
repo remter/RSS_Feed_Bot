@@ -5,4 +5,4 @@ Features:
 - xkcd spammer
 
 Dependencies:
-[rss-parser](https://github.com/rbren/rss-parser)
+- [rss-parser](https://github.com/rbren/rss-parser)
