@@ -5,6 +5,7 @@
     "main": "bot.js",
     "author": "Krishna Chaitanya Addanki",
     "dependencies": {
+        "cron": "^1.8.2",
         "discord.js": "^13.6.0",
         "rss-parser": "^3.12.0"
     },

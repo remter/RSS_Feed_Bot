@@ -3,6 +3,12 @@
 // RSS feed
 const RSS_URL = 'https://xkcd.com/rss.xml';
 
+//Initialize parser
+let Parser = require('rss-parser');
+
+//Initialize cron
+const cron = require('cron');
+
 // Get Discord api
 const Discord = require('discord.js');
 // Get auth token which is named token. This is my private key.
@@ -12,6 +18,9 @@ const client = new Discord.Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
 // Prefix of messages to look forward to
 const prefix = '+';
+
+// Create new Parser
+let parser = new Parser();
 
 client.on('messageCreate', (message) => {
   // If message author is a bot Ignore them
@@ -35,11 +44,69 @@ client.on('messageCreate', (message) => {
     message.reply(`Pong! This message had a latency of ${timeTaken}ms.`);
   }
   if (command === 'comic') {
-    message.reply({
-      files: ['https://imgs.xkcd.com/comics/rest_and_fluids.png'],
+    (async () => {
+      let file = [];
+      
+      let feed = await parser.parseURL(RSS_URL);
+      feed.items.forEach(item => {
+        var res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
+        file.push(res);
+      });
+      
+      message.reply({
+        files: file[0],
+      })
+      
+  
+    })();
+  }
 
-    });
+  // Check feed
+  if(command === 'feed'){
+    (async () => {
+      let file = [];
+      
+      let feed = await parser.parseURL(RSS_URL);
+      feed.items.forEach(item => {
+        var res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
+        file.push(res);
+      });
+      file.forEach(file =>{
+        message.reply({
+          files: file,
+        })
+      })
+
+    })();
+
   }
 });
+
+client.on('ready', client => {
+  client.channels.cache.get('943717767687864341').send('Hello here!');
+})
+
+
+//Create new job which is supposed to run at 20:25:00 everyday.
+let feed = new cron.CronJob('00 43 21 * * *', function(){
+  (async () => {
+    let file = [];
+    
+    let feed = await parser.parseURL(RSS_URL);
+    feed.items.forEach(item => {
+      var res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
+      file.push(res);
+    });
+    
+    client.channels.cache.get('943717767687864341').send({
+      files: file[0],
+    })
+    
+
+  })();
+}, null, true, 'America/Los_Angeles');
+
+//Start sending to discord.
+feed.start();
 
 client.login(auth.token);
