@@ -70,7 +70,8 @@ client.on('messageCreate', (message) => {
         file.push(res);
       });
       file.forEach((f) => {
-        message.reply({
+        message.channel.send({
+          content: `[${f}]`,
           files: f,
         });
       });
