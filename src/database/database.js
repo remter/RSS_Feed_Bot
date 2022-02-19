@@ -31,8 +31,16 @@ const Database = {
     fs.writeFile('../../feeds.json', this._feeds);
   },
 
+  async getLatest(feedUrl) {
+    return this._feeds[feedUrl].items[0];
+  },
+
   async getUnread(feedUrl) {
     return this._feeds[feedUrl].items.filter((i) => !i.isRead);
+  },
+
+  async hasUnread(feedUrl) {
+    return this._feeds[feedUrl].items.some((i) => i.isRead === false);
   },
 
   // Expects feed of type: https://github.com/rbren/rss-parser/blob/HEAD/test/output/reddit.json
@@ -52,18 +60,24 @@ const Database = {
       // TODO: handle case if guid does not exist
       feed.items.forEach((i) => {
         if (!this._findItemByGuid(feed.feedUrl, i.guid)) {
-          this._feeds[feed.feedUrl].items.push({ ...i, isRead: false });
+          this._feeds[feed.feedUrl].items.unshift({ ...i, isRead: false });
         }
       });
     }
+
+    this.syncToFile();
   },
 
   async _findItemByGuid(feedUrl, guid) {
     return this._feeds[feedUrl].items.find((i) => i.guid === guid);
   },
 
+  /**
+   * Sorts a given feed by date.
+   * WARNING: pubDate is an optional parameter - not all feeds will have this.
+   */
   sortItems(feedUrl) {
-
+    this._feeds[feedUrl].items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
   },
 };
 
