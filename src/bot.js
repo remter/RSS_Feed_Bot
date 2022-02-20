@@ -22,6 +22,7 @@ const prefix = '+';
 // Create new Parser
 const parser = new Parser();
 
+
 function formatter(f) {
   const fOut = {
     Num: f.link.match(/(?<=com\/).*(?=\/)/gi),
@@ -54,19 +55,18 @@ client.on('messageCreate', (message) => {
     const timeTaken = Date.now() - message.createdTimestamp;
     message.reply(`Pong! This message had a latency of ${timeTaken}ms.`);
   }
-  if (command === 'latest') {
+  if (command === 'comic') {
     (async () => {
+      const file = [];
+
       const feed = await parser.parseURL(RSS_URL);
+
       // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
       const res = formatter(feed.items[0]);
-
-      await client.channels.cache.get('943717767687864341').send({
-        content: `Title: ${res.Title}\n Number: ${res.Num}\n Link: <${res.Url}>`,
-        files: res.Img,
+      
+      message.reply({
+        files: file[0],
       });
-      if (res.Alt_text) {
-        await client.channels.cache.get('943717767687864341').send(`${res.Alt_text}`);
-      }
     })();
   }
 
@@ -81,8 +81,7 @@ client.on('messageCreate', (message) => {
         file.push(res);
       });
       file.forEach((f) => {
-        message.channel.send({
-          content: `<${f}>`,
+        message.reply({
           files: f,
         });
       });
