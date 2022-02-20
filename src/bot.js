@@ -82,7 +82,7 @@ client.on('messageCreate', (message) => {
       if (newItems.length === 0) {
         return;
       }
-      // There should only be one item
+      // There should only be one item if checkFeed is regularly scheduled.
       newItems.forEach((item) => {
         client.channels.cache.get('943717767687864341').send(`New XKCD posted! \nTitle: ${item.title}\nLink: <${item.link}>\nDate: ${item.pubDate}`);
       });
