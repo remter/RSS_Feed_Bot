@@ -1,8 +1,11 @@
+import fs from 'fs-extra';
 import Parser from 'rss-parser';
 import cron from 'cron';
 import Discord from 'discord.js';
-// import auth from '../auth.json';
 import FeedChecker from './feeds/feedchecker.js';
+
+const auth = await fs.readJSON('./auth.json');
+
 // Followed the setup from digital ocean: https://www.digitalocean.com/community/tutorials/how-to-build-a-discord-bot-with-node-js
 
 // RSS feed
@@ -91,7 +94,7 @@ client.on('messageCreate', (message) => {
 });
 
 client.on('ready', (c) => {
-  c.channels.cache.get('943717767687864341').send('Hello Shin!');
+  c.channels.cache.get('943717767687864341').send('Hello!');
 });
 
 // Create new job which is supposed to run at 20:25:00 everyday.
@@ -114,4 +117,4 @@ const xkcdJob = new cron.CronJob('00 43 21 * * *', (() => {
 // Start sending to discord.
 xkcdJob.start();
 
-client.login('OTQzNjg3MjQwODk3NDI1NDI4.Yg2rOw.oJH5JeBJ7BFxjI4rrO0Yo3Xx_bQ');
+client.login(auth.token);
