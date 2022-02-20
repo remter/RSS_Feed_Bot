@@ -22,7 +22,7 @@ const prefix = '+';
 // Create new Parser
 const parser = new Parser();
 
-function sorter(f) {
+function formater(f) {
   const fOut = {
     Num: f.link.match(/(?<=com\/).*(?=\/)/gi),
     Title: f.title,
@@ -58,7 +58,7 @@ client.on('messageCreate', (message) => {
     (async () => {
       const feed = await parser.parseURL(RSS_URL);
       // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
-      const res = sorter(feed.items[0]);
+      const res = formater(feed.items[0]);
 
       await client.channels.cache.get('943717767687864341').send({
         content: `Title: ${res.Title}\n Number: ${res.Num}\n Link: <${res.Url}>`,
