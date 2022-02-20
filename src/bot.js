@@ -22,17 +22,6 @@ const prefix = '+';
 // Create new Parser
 const parser = new Parser();
 
-function sorter(f) {
-  const fOut = {
-    Num: f.link.match(/(?<=com\/).*(?=\/)/gi),
-    Title: f.title,
-    Img: f.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi),
-    Alt_text: f.content.match(/(?<=title=").*.(?=" alt=)/gi),
-    Url: f.link,
-  };
-  return fOut;
-}
-
 client.on('messageCreate', (message) => {
   // If message author is a bot Ignore them
   if (message.author.bot) return;
@@ -54,19 +43,19 @@ client.on('messageCreate', (message) => {
     const timeTaken = Date.now() - message.createdTimestamp;
     message.reply(`Pong! This message had a latency of ${timeTaken}ms.`);
   }
-  if (command === 'latest') {
+  if (command === 'comic') {
     (async () => {
-      const feed = await parser.parseURL(RSS_URL);
-      // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
-      const res = sorter(feed.items[0]);
+      const file = [];
 
-      await client.channels.cache.get('943717767687864341').send({
-        content: `Title: ${res.Title}\n Number: ${res.Num}\n Link: <${res.Url}>`,
-        files: res.Img,
+      const feed = await parser.parseURL(RSS_URL);
+      feed.items.forEach((item) => {
+        const res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
+        file.push(res);
       });
-      if (res.Alt_text) {
-        await client.channels.cache.get('943717767687864341').send(`${res.Alt_text}`);
-      }
+
+      message.reply({
+        files: file[0],
+      });
     })();
   }
 
@@ -81,8 +70,7 @@ client.on('messageCreate', (message) => {
         file.push(res);
       });
       file.forEach((f) => {
-        message.channel.send({
-          content: `<${f}>`,
+        message.reply({
           files: f,
         });
       });
