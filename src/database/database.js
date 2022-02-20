@@ -8,7 +8,7 @@ import fs from 'fs-extra';
  */
 
 const Database = {
-  FILEPATH: '../../feeds.json',
+  FILEPATH: './feeds.json',
   DB_VERSION: 10,
   _db: null,
   db() {
