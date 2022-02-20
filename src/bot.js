@@ -1,8 +1,8 @@
 import Parser from 'rss-parser';
 import cron from 'cron';
 import Discord from 'discord.js';
-import auth from '../auth.json';
-import FeedChecker from './feeds/feedchecker';
+// import auth from '../auth.json';
+import FeedChecker from './feeds/feedchecker.js';
 // Followed the setup from digital ocean: https://www.digitalocean.com/community/tutorials/how-to-build-a-discord-bot-with-node-js
 
 // RSS feed
@@ -78,17 +78,20 @@ client.on('messageCreate', (message) => {
   // TODO: remove this
   if (command === 'cachefeed') {
     (async () => {
-      const feed = await feedchecker.checkFeed(RSS_URL);
-
-      feed.items.forEach((item) => {
-        console.log(item);
+      const newItems = await feedchecker.checkFeed(RSS_URL);
+      if (newItems.length === 0) {
+        return;
+      }
+      // There should only be one item
+      newItems.forEach((item) => {
+        client.channels.cache.get('943717767687864341').send(`New XKCD posted! \nTitle: ${item.title}\nLink: <${item.link}>\nDate: ${item.pubDate}`);
       });
     })();
   }
 });
 
 client.on('ready', (c) => {
-  c.channels.cache.get('943717767687864341').send('Hello here!');
+  c.channels.cache.get('943717767687864341').send('Hello Shin!');
 });
 
 // Create new job which is supposed to run at 20:25:00 everyday.
@@ -111,4 +114,4 @@ const xkcdJob = new cron.CronJob('00 43 21 * * *', (() => {
 // Start sending to discord.
 xkcdJob.start();
 
-client.login(auth.token);
+client.login('OTQzNjg3MjQwODk3NDI1NDI4.Yg2rOw.oJH5JeBJ7BFxjI4rrO0Yo3Xx_bQ');
