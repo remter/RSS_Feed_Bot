@@ -2,8 +2,8 @@ import Parser from 'rss-parser';
 import Database from '../database/database';
 
 class FeedChecker {
-  constructor(db) {
-    this._db = db.init();
+  constructor() {
+    this._db = Database.init();
     this.RSSParser = new Parser();
   }
 

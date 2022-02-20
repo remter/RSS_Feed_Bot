@@ -4,6 +4,7 @@
     "description": "This bot is supposed to read from XKCD's RSS feeds and post the images into a chat",
     "main": "bot.js",
     "author": "Krishna Chaitanya Addanki",
+    "type": "module",
     "dependencies": {
         "cron": "^1.8.2",
         "discord.js": "^13.6.0",

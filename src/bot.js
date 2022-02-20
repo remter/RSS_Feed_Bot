@@ -1,18 +1,13 @@
+import Parser from 'rss-parser';
+import cron from 'cron';
+import Discord from 'discord.js';
+import auth from '../auth.json';
+import FeedChecker from './feeds/feedchecker';
 // Followed the setup from digital ocean: https://www.digitalocean.com/community/tutorials/how-to-build-a-discord-bot-with-node-js
 
 // RSS feed
 const RSS_URL = 'https://xkcd.com/rss.xml';
 
-// Initialize parser
-const Parser = require('rss-parser');
-
-// Initialize cron
-const cron = require('cron');
-
-// Get Discord api
-const Discord = require('discord.js');
-// Get auth token which is named token. This is my private key.
-const auth = require('../auth.json');
 // Allows for discord to view messages in chat.
 const client = new Discord.Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
@@ -21,6 +16,9 @@ const prefix = '+';
 
 // Create new Parser
 const parser = new Parser();
+
+// Instantiate Feed Checker/DB
+const feedchecker = new FeedChecker();
 
 client.on('messageCreate', (message) => {
   // If message author is a bot Ignore them
@@ -73,6 +71,17 @@ client.on('messageCreate', (message) => {
         message.reply({
           files: f,
         });
+      });
+    })();
+  }
+
+  // TODO: remove this
+  if (command === 'cachefeed') {
+    (async () => {
+      const feed = await feedchecker.checkFeed(RSS_URL);
+
+      feed.items.forEach((item) => {
+        console.log(item);
       });
     })();
   }
