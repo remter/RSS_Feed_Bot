@@ -14,16 +14,10 @@ class FeedChecker {
    */
   async checkFeed(feedUrl) {
     const feedObj = await this.RSSParser.parseURL(feedUrl);
-    console.debug('feedurl', feedUrl);
-    console.debug('feedobj', feedObj);
     await Database.upsertFeed(feedObj, feedUrl);
-    console.debug('database', Database._feeds);
-    console.debug('xkcd: items', Database._feeds[feedUrl].items);
     const hasUnread = await Database.hasUnread(feedUrl);
     if (hasUnread) {
-      console.debug('found unread');
       const unread = await Database.getUnreadAndMark(feedUrl);
-      console.debug('unread', unread);
       return unread;
     }
     return [];

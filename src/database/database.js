@@ -61,14 +61,12 @@ const Database = {
       throw new Error('Missing feedUrl!');
     }
     if (!Object.prototype.hasOwnProperty.call(this._feeds, feedUrl)) {
-      console.debug('new feed');
       this._feeds[feedUrl] = feed;
       this._feeds[feedUrl].items = this._feeds[feedUrl].items.map((i) => ({
         ...i,
         isRead: false,
       }));
     } else {
-      console.debug('feed found, adding items');
       // Insert new feed items
       // TODO: handle case if guid does not exist
       feed.items.forEach((i) => {
