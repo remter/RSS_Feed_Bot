@@ -22,17 +22,6 @@ const prefix = '+';
 // Create new Parser
 const parser = new Parser();
 
-function formatter(f) {
-  const fOut = {
-    Num: f.link.match(/(?<=com\/).*(?=\/)/gi),
-    Title: f.title,
-    Img: f.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi),
-    Alt_text: f.content.match(/(?<=title=").*.(?=" alt=)/gi),
-    Url: f.link,
-  };
-  return fOut;
-}
-
 client.on('messageCreate', (message) => {
   // If message author is a bot Ignore them
   if (message.author.bot) return;
@@ -59,9 +48,10 @@ client.on('messageCreate', (message) => {
       const file = [];
 
       const feed = await parser.parseURL(RSS_URL);
-
-      // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
-      const res = formatter(feed.items[0]);
+      feed.items.forEach((item) => {
+        const res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
+        file.push(res);
+      });
 
       message.reply({
         files: file[0],
@@ -85,6 +75,9 @@ client.on('messageCreate', (message) => {
 =======
         message.channel.send({
           content: `[${f}]`,
+<<<<<<< HEAD
+>>>>>>> parent of 229c677 (Replaced comic command with latest comand.)
+=======
 >>>>>>> parent of 229c677 (Replaced comic command with latest comand.)
           files: f,
         });
