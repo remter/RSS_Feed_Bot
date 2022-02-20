@@ -80,7 +80,12 @@ client.on('messageCreate', (message) => {
         file.push(res);
       });
       file.forEach((f) => {
+<<<<<<< HEAD
         message.reply({
+=======
+        message.channel.send({
+          content: `[${f}]`,
+>>>>>>> parent of 229c677 (Replaced comic command with latest comand.)
           files: f,
         });
       });
