@@ -54,19 +54,17 @@ client.on('messageCreate', (message) => {
     const timeTaken = Date.now() - message.createdTimestamp;
     message.reply(`Pong! This message had a latency of ${timeTaken}ms.`);
   }
-  if (command === 'latest') {
+  if (command === 'comic') {
     (async () => {
+      const file = [];
+
       const feed = await parser.parseURL(RSS_URL);
       // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
       const res = formater(feed.items[0]);
 
-      await client.channels.cache.get('943717767687864341').send({
-        content: `Title: ${res.Title}\n Number: ${res.Num}\n Link: <${res.Url}>`,
-        files: res.Img,
+      message.reply({
+        files: file[0],
       });
-      if (res.Alt_text) {
-        await client.channels.cache.get('943717767687864341').send(`${res.Alt_text}`);
-      }
     })();
   }
 
@@ -81,8 +79,15 @@ client.on('messageCreate', (message) => {
         file.push(res);
       });
       file.forEach((f) => {
+<<<<<<< HEAD
+        message.reply({
+=======
         message.channel.send({
-          content: `<${f}>`,
+          content: `[${f}]`,
+<<<<<<< HEAD
+>>>>>>> parent of 229c677 (Replaced comic command with latest comand.)
+=======
+>>>>>>> parent of 229c677 (Replaced comic command with latest comand.)
           files: f,
         });
       });
