@@ -40,6 +40,8 @@ client.on('messageCreate', (message) => {
   // If message is not intended for this bot ignore it
   if (!message.content.startsWith(prefix)) return;
 
+  const botChannel = client.channels.cache.get('943717767687864341');
+
   // Cut out prefix
   const commandBody = message.content.slice(prefix.length);
   // Split all spaces into different arguments
@@ -61,12 +63,12 @@ client.on('messageCreate', (message) => {
       // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
       const res = formatter(feed.items[0]);
 
-      await client.channels.cache.get('943717767687864341').send({
+      await botChannel.send({
         content: `Title: ${res.Title}\n Number: ${res.Num}\n Link: <${res.Url}>`,
         files: res.Img,
       });
       if (res.Alt_text) {
-        await client.channels.cache.get('943717767687864341').send(`${res.Alt_text}`);
+        await botChannel.send(`${res.Alt_text}`);
       }
     })();
   }
@@ -95,11 +97,20 @@ client.on('messageCreate', (message) => {
     (async () => {
       const newItems = await feedchecker.checkFeed(RSS_URL);
       if (newItems.length === 0) {
+        console.debug('no new items');
         return;
       }
+
+      console.debug('formatter', newItems[0]);
+
       // There should only be one item if checkFeed is regularly scheduled.
-      newItems.forEach((item) => {
-        client.channels.cache.get('943717767687864341').send(`New XKCD posted! \nTitle: ${item.title}\nLink: <${item.link}>\nDate: ${item.pubDate}`);
+      const formattedComic = formatter(newItems[0]);
+      await botChannel.send({
+        content: `New xkcd posted!\n<${formattedComic.Url}>\n**${formattedComic.Title}**\n\`\`\`${formattedComic.Alt_text}\`\`\``,
+        files: [{
+          attachment: `${formattedComic.Img}`,
+          description: `${formattedComic.Alt_text}`,
+        }],
       });
     })();
   }
@@ -109,19 +120,25 @@ client.on('ready', (c) => {
   c.channels.cache.get('943717767687864341').send('Hello!');
 });
 
-// Create new job which is supposed to run at 20:25:00 everyday.
-const xkcdJob = new cron.CronJob('00 43 21 * * *', (() => {
+// xkcd updates MWF in the evening PST. Exact update schedule varies.
+// Schedule the job to run MWF, every 30 minutes.
+const xkcdJob = new cron.CronJob('00 00,30 * * * 1,3,5', (() => {
   (async () => {
-    const file = [];
-
-    const feed = await parser.parseURL(RSS_URL);
-    feed.items.forEach((item) => {
-      const res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
-      file.push(res);
-    });
-
-    client.channels.cache.get('943717767687864341').send({
-      files: file[0],
+    const newItems = await feedchecker.checkFeed(RSS_URL);
+    if (newItems.length === 0) {
+      console.debug('no new items');
+      return;
+    }
+    // There should only be one item if checkFeed is regularly scheduled.
+    newItems.forEach(async (item) => {
+      const formattedComic = formatter(item);
+      await client.channels.cache.get('943717767687864341').send({
+        content: `New xkcd posted!\n<${formattedComic.Url}>\n**${formattedComic.Title}**\n\`\`\`${formattedComic.Alt_text}\`\`\``,
+        files: [{
+          attachment: `${formattedComic.Img}`,
+          description: `${formattedComic.Alt_text}`,
+        }],
+      });
     });
   })();
 }), null, true, 'America/Los_Angeles');
