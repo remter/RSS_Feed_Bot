@@ -1,4 +1,4 @@
-import { fs } from 'fs';
+import fs from 'fs-extra';
 /**
  * Database design considerations
  *
@@ -8,6 +8,7 @@ import { fs } from 'fs';
  */
 
 const Database = {
+  FILEPATH: './feeds.json',
   DB_VERSION: 10,
   _db: null,
   db() {
@@ -21,22 +22,32 @@ const Database = {
   async init() {
     if (this._db) return this;
 
-    this._feeds = await fs.readFile('../../feeds.json');
+    await fs.ensureFile(this.FILEPATH);
+
+    try {
+      this._feeds = await fs.readJSON(this.FILEPATH);
+    } catch (e) {
+      console.error('Database: Error reading file:', e);
+      // Assume that file was newly created; initialise with empty obj
+      await fs.writeJSON(this.FILEPATH, this._feeds);
+    }
     this._db = true;
 
     return this;
   },
 
   async syncToFile() {
-    fs.writeFile('../../feeds.json', this._feeds);
+    await fs.writeJSON(this.FILEPATH, this._feeds);
   },
 
   async getLatest(feedUrl) {
     return this._feeds[feedUrl].items[0];
   },
 
-  async getUnread(feedUrl) {
-    return this._feeds[feedUrl].items.filter((i) => !i.isRead);
+  async getUnreadAndMark(feedUrl) {
+    const unread = this._feeds[feedUrl].items.filter((i) => !i.isRead);
+    unread.forEach((i) => { i.isRead = true; });
+    return unread;
   },
 
   async hasUnread(feedUrl) {
@@ -45,13 +56,13 @@ const Database = {
 
   // Expects feed of type: https://github.com/rbren/rss-parser/blob/HEAD/test/output/reddit.json
   // Uses feedUrl as unique identifier.
-  async upsertFeed(feed) {
-    if (!feed.feedUrl) {
+  async upsertFeed(feed, feedUrl) {
+    if (!feedUrl) {
       throw new Error('Missing feedUrl!');
     }
-    if (!Object.prototype.hasOwnProperty.call(this._feeds, feed.feedUrl)) {
-      this._feeds[feed.feedUrl] = feed;
-      this._feeds[feed.feedUrl].items.map((i) => ({
+    if (!Object.prototype.hasOwnProperty.call(this._feeds, feedUrl)) {
+      this._feeds[feedUrl] = feed;
+      this._feeds[feedUrl].items = this._feeds[feedUrl].items.map((i) => ({
         ...i,
         isRead: false,
       }));
@@ -59,8 +70,8 @@ const Database = {
       // Insert new feed items
       // TODO: handle case if guid does not exist
       feed.items.forEach((i) => {
-        if (!this._findItemByGuid(feed.feedUrl, i.guid)) {
-          this._feeds[feed.feedUrl].items.unshift({ ...i, isRead: false });
+        if (!this._findItemByGuid(feedUrl, i.guid)) {
+          this._feeds[feedUrl].items.unshift({ ...i, isRead: false });
         }
       });
     }
