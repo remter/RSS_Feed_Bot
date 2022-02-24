@@ -1,18 +1,25 @@
 // Followed the setup from digital ocean: https://www.digitalocean.com/community/tutorials/how-to-build-a-discord-bot-with-node-js
 
-// RSS feed
-const RSS_URL = 'https://xkcd.com/rss.xml';
+// Import File reader
+import fs from 'fs-extra';
 
 // Initialize parser
-const Parser = require('rss-parser');
+import Parser from 'rss-parser';
 
 // Initialize cron
-const cron = require('cron');
+import cron from 'cron';
 
 // Get Discord api
-const Discord = require('discord.js');
+import Discord from 'discord.js';
+
+// Import formater
+import Formatter from './Formatters/formater.js';
+
+// Import axios
+
 // Get auth token which is named token. This is my private key.
-const auth = require('../auth.json');
+const auth = await fs.readJSON('./auth.json');
+
 // Allows for discord to view messages in chat.
 const client = new Discord.Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
@@ -22,16 +29,8 @@ const prefix = '+';
 // Create new Parser
 const parser = new Parser();
 
-function formatter(f) {
-  const fOut = {
-    Num: f.link.match(/(?<=com\/).*(?=\/)/gi),
-    Title: f.title,
-    Img: f.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi),
-    Alt_text: f.content.match(/(?<=title=").*.(?=" alt=)/gi),
-    Url: f.link,
-  };
-  return fOut;
-}
+// RSS feed
+const RSS_URL = 'https://xkcd.com/rss.xml';
 
 client.on('messageCreate', (message) => {
   // If message author is a bot Ignore them
@@ -58,14 +57,19 @@ client.on('messageCreate', (message) => {
     (async () => {
       const feed = await parser.parseURL(RSS_URL);
       // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
-      const res = formatter(feed.items[0]);
+      const res = Formatter(feed.items[0]);
 
-      await client.channels.cache.get('943717767687864341').send({
+      await client.channels.cache.get('946163613272535082').send({
         content: `Title: ${res.Title}\n Number: ${res.Num}\n Link: <${res.Url}>`,
-        files: res.Img,
+        // files: res.Img,
+        files: [{
+          attachment: String(res.Img),
+          name: 'file.jpg',
+          description: String(res.Alt_text),
+        }],
       });
       if (res.Alt_text) {
-        await client.channels.cache.get('943717767687864341').send(`${res.Alt_text}`);
+        await client.channels.cache.get('946163613272535082').send(`${res.Alt_text}`);
       }
     })();
   }
@@ -91,7 +95,7 @@ client.on('messageCreate', (message) => {
 });
 
 client.on('ready', (c) => {
-  c.channels.cache.get('943717767687864341').send('Hello here!');
+  c.channels.cache.get('946163613272535082').send('Hello here!');
 });
 
 // Create new job which is supposed to run at 20:25:00 everyday.
@@ -105,7 +109,7 @@ const xkcdJob = new cron.CronJob('00 43 21 * * *', (() => {
       file.push(res);
     });
 
-    client.channels.cache.get('943717767687864341').send({
+    client.channels.cache.get('946163613272535082').send({
       files: file[0],
     });
   })();
@@ -114,4 +118,4 @@ const xkcdJob = new cron.CronJob('00 43 21 * * *', (() => {
 // Start sending to discord.
 xkcdJob.start();
 
-client.login(auth.token);
+client.login(auth.tokenrob);
