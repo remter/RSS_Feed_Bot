@@ -113,4 +113,4 @@ const xkcdJob = new cron.CronJob('15 52 16 * * *', (() => {
 // Start sending to discord.
 xkcdJob.start();
 
-client.login(auth.token);
+client.login(auth.tokenrob);

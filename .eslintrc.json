@@ -15,6 +15,7 @@
         "no-console": "warn",
         "no-underscore-dangle": "off",
         "no-empty-function": "warn",
-        "no-param-reassign": "warn"
+        "no-param-reassign": "warn",
+        "no-await-in-loop":"warn"
     }
 }
