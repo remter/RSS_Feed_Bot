@@ -9,7 +9,8 @@ async function PostComicToDiscord(client, channelId, comicDetail) {
   // });
   const exampleEmbed = {
     color: 0x0099ff,
-    title: `${comicDetail.Num}: ${comicDetail.Title}`,
+    title: `xkcd #${comicDetail.Num}`,
+    description: `**${comicDetail.Title}**`,
     url: comicDetail.Url,
     image: {
       url: comicDetail.Img.toString(),
