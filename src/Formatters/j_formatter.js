@@ -1,10 +1,10 @@
 function JFormatter(j) {
   const fOut = {
-    Num: j.,
-    Title: f.title,
-    Img: f.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi),
-    Alt_text: f.content.match(/(?<=title=").*.(?=" alt=)/gi),
-    Url: f.link,
+    Num: j.num.toString(),
+    Title: j.title.toString(),
+    Img: j.img.toString(),
+    Alt_text: j.alt.toString(),
+    Url: `https://xkcd.com/${j.num}/`,
   };
   return fOut;
 }
