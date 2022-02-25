@@ -1,5 +1,3 @@
-import { MessageEmbed } from 'discord.js';
-
 async function PostComicToDiscord(client, channelId, comicDetail) {
   // await client.channels.cache.get(channelId).send({
   //   content: `Title: ${comicDetail.Title}\n Number: ${comicDetail.Num}\n Link: <${comicDetail.Url}>`,
