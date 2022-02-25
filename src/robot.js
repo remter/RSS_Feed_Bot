@@ -94,24 +94,19 @@ client.on('messageCreate', (message) => {
   }
 });
 
+// Start message
 client.on('ready', (c) => {
-  c.channels.cache.get(channelId).send('Hello here!');
+  c.channels.cache.get(channelId).send('Hello there!');
 });
 
 // Create new job which is supposed to run at 20:25:00 everyday.
-const xkcdJob = new cron.CronJob('00 43 21 * * *', (() => {
+const xkcdJob = new cron.CronJob('15 52 16 * * *', (() => {
   (async () => {
-    const file = [];
-
     const feed = await parser.parseURL(RSS_URL);
-    feed.items.forEach((item) => {
-      const res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
-      file.push(res);
-    });
+    // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
+    const res = Formatter(feed.items[0]);
 
-    client.channels.cache.get(channelId).send({
-      files: file[0],
-    });
+    PostComicToDiscord(client, channelId, res);
   })();
 }), null, true, 'America/Los_Angeles');
 

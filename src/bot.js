@@ -1,38 +1,41 @@
-import fs from 'fs-extra';
-import Parser from 'rss-parser';
-import cron from 'cron';
-import Discord from 'discord.js';
-import FeedChecker from './feeds/feedchecker.js';
-
-const auth = await fs.readJSON('./auth.json');
-
 // Followed the setup from digital ocean: https://www.digitalocean.com/community/tutorials/how-to-build-a-discord-bot-with-node-js
 
-// RSS feed
-const RSS_URL = 'https://xkcd.com/rss.xml';
+// Import File reader
+import fs from 'fs-extra';
+
+// Initialize parser
+import Parser from 'rss-parser';
+
+// Initialize cron
+import cron from 'cron';
+
+// Get Discord api
+import Discord from 'discord.js';
+
+// Import formaters
+import Formatter from './Formatters/formater.js';
+import JFormatter from './Formatters/j_formatter.js';
+
+// Import Utls
+import xkcdService from './utils/xkcdService.js';
+import PostComicToDiscord from './utils/postcomictodiscord.js';
+
+// Get auth token which is named token. This is my private key.
+const auth = await fs.readJSON('./auth.json');
+
+// Get Settings for bot.
+const settings = await fs.readJSON('./settings.json');
+const { channelId } = settings;
+const { prefix } = settings;
+const { RSS_URL } = settings;
 
 // Allows for discord to view messages in chat.
 const client = new Discord.Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
-// Prefix of messages to look forward to
-const prefix = '+';
+// Set up server ID and Channel ID.
 
 // Create new Parser
 const parser = new Parser();
-
-// Instantiate Feed Checker/DB
-const feedchecker = new FeedChecker();
-
-function formatter(f) {
-  const fOut = {
-    Num: f.link.match(/(?<=com\/).*(?=\/)/gi),
-    Title: f.title,
-    Img: f.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi),
-    Alt_text: f.content.match(/(?<=title=").*.(?=" alt=)/gi),
-    Url: f.link,
-  };
-  return fOut;
-}
 
 client.on('messageCreate', (message) => {
   // If message author is a bot Ignore them
@@ -40,14 +43,15 @@ client.on('messageCreate', (message) => {
   // If message is not intended for this bot ignore it
   if (!message.content.startsWith(prefix)) return;
 
-  const botChannel = client.channels.cache.get('943717767687864341');
-
   // Cut out prefix
   const commandBody = message.content.slice(prefix.length);
   // Split all spaces into different arguments
   const args = commandBody.split(' ');
   // Remove first element from arg and forces it into lower case
   const command = args.shift().toLowerCase();
+
+  // Set up return channel
+  const rChannel = message.channel.id;
 
   // Checks for commands
 
@@ -57,89 +61,52 @@ client.on('messageCreate', (message) => {
     const timeTaken = Date.now() - message.createdTimestamp;
     message.reply(`Pong! This message had a latency of ${timeTaken}ms.`);
   }
+  // Get latest comic using RSS feed
   if (command === 'latest') {
     (async () => {
       const feed = await parser.parseURL(RSS_URL);
       // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
-      const res = formatter(feed.items[0]);
+      const res = Formatter(feed.items[0]);
 
-      await botChannel.send({
-        content: `Title: ${res.Title}\n Number: ${res.Num}\n Link: <${res.Url}>`,
-        files: res.Img,
-      });
-      if (res.Alt_text) {
-        await botChannel.send(`${res.Alt_text}`);
-      }
+      PostComicToDiscord(client, rChannel, res);
+    })();
+  }
+  // Get comic using AXIOS JSON.
+  if (command === 'get-comic') {
+    (async () => {
+      const comicId = args[0];
+
+      const res = JFormatter((await xkcdService.getComicById(comicId)).data);
+
+      await PostComicToDiscord(client, rChannel, res);
     })();
   }
 
   // Check feed
   if (command === 'feed') {
     (async () => {
-      const file = [];
-
       const feed = await parser.parseURL(RSS_URL);
       feed.items.forEach((item) => {
-        const res = item.content.match(/(?<=src=").*\.(jpg|jpeg|png|gif)/gi);
-        file.push(res);
-      });
-      file.forEach((f) => {
-        message.channel.send({
-          content: `<${f}>`,
-          files: f,
-        });
-      });
-    })();
-  }
-
-  // TODO: remove this
-  if (command === 'cachefeed') {
-    (async () => {
-      const newItems = await feedchecker.checkFeed(RSS_URL);
-      if (newItems.length === 0) {
-        console.debug('no new items');
-        return;
-      }
-
-      console.debug('formatter', newItems[0]);
-
-      // There should only be one item if checkFeed is regularly scheduled.
-      const formattedComic = formatter(newItems[0]);
-      await botChannel.send({
-        content: `New xkcd posted!\n<${formattedComic.Url}>\n**${formattedComic.Title}**\n\`\`\`${formattedComic.Alt_text}\`\`\``,
-        files: [{
-          attachment: `${formattedComic.Img}`,
-          description: `${formattedComic.Alt_text}`,
-        }],
+        const res = Formatter(item);
+        PostComicToDiscord(client, rChannel, res);
       });
     })();
   }
 });
 
+// Start message
 client.on('ready', (c) => {
-  c.channels.cache.get('943717767687864341').send('Hello!');
+  c.channels.cache.get(channelId).send('Hello there!');
 });
 
-// xkcd updates MWF in the evening PST. Exact update schedule varies.
-// Schedule the job to run MWF, every 30 minutes.
-const xkcdJob = new cron.CronJob('00 00,30 * * * 1,3,5', (() => {
+// Create new job which is supposed to run at 20:25:00 everyday.
+const xkcdJob = new cron.CronJob('15 52 16 * * *', (() => {
   (async () => {
-    const newItems = await feedchecker.checkFeed(RSS_URL);
-    if (newItems.length === 0) {
-      console.debug('no new items');
-      return;
-    }
-    // There should only be one item if checkFeed is regularly scheduled.
-    newItems.forEach(async (item) => {
-      const formattedComic = formatter(item);
-      await client.channels.cache.get('943717767687864341').send({
-        content: `New xkcd posted!\n<${formattedComic.Url}>\n**${formattedComic.Title}**\n\`\`\`${formattedComic.Alt_text}\`\`\``,
-        files: [{
-          attachment: `${formattedComic.Img}`,
-          description: `${formattedComic.Alt_text}`,
-        }],
-      });
-    });
+    const feed = await parser.parseURL(RSS_URL);
+    // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
+    const res = Formatter(feed.items[0]);
+
+    PostComicToDiscord(client, channelId, res);
   })();
 }), null, true, 'America/Los_Angeles');
 
