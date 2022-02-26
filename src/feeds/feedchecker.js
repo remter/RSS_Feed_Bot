@@ -14,6 +14,7 @@ class FeedChecker {
    */
   async checkFeed(feedUrl) {
     const feedObj = await this.RSSParser.parseURL(feedUrl);
+    feedObj.items.reverse();
     await Database.upsertFeed(feedObj, feedUrl);
     const hasUnread = await Database.hasUnread(feedUrl);
     if (hasUnread) {

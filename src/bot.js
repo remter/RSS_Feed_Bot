@@ -104,13 +104,15 @@ client.on('messageCreate', (message) => {
       console.debug('formatter', newItems[0]);
 
       // There should only be one item if checkFeed is regularly scheduled.
-      const formattedComic = formatter(newItems[0]);
-      await botChannel.send({
-        content: `New xkcd posted!\n<${formattedComic.Url}>\n**${formattedComic.Title}**\n\`\`\`${formattedComic.Alt_text}\`\`\``,
-        files: [{
-          attachment: `${formattedComic.Img}`,
-          description: `${formattedComic.Alt_text}`,
-        }],
+      newItems.forEach(async (item) => {
+        const formattedComic = formatter(item);
+        await botChannel.send({
+          content: `New xkcd posted!\n<${formattedComic.Url}>\n**${formattedComic.Title}**\n\`\`\`${formattedComic.Alt_text}\`\`\``,
+          files: [{
+            attachment: `${formattedComic.Img}`,
+            description: `${formattedComic.Alt_text}`,
+          }],
+        });
       });
     })();
   }
