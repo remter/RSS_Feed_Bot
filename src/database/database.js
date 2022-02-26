@@ -70,8 +70,9 @@ const Database = {
       // Insert new feed items
       // TODO: handle case if guid does not exist
       feed.items.forEach((i) => {
-        if (!this._findItemByGuid(feedUrl, i.guid)) {
-          this._feeds[feedUrl].items.unshift({ ...i, isRead: false });
+        if (!this._includesItemByGuid(feedUrl, i.guid)) {
+          console.debug('new item', i);
+          this._feeds[feedUrl].items.push({ ...i, isRead: false });
         }
       });
     }
@@ -79,8 +80,12 @@ const Database = {
     this.syncToFile();
   },
 
-  async _findItemByGuid(feedUrl, guid) {
+  _findItemByGuid(feedUrl, guid) {
     return this._feeds[feedUrl].items.find((i) => i.guid === guid);
+  },
+
+  _includesItemByGuid(feedUrl, guid) {
+    return this._feeds[feedUrl].items.some((i) => i.guid === guid);
   },
 
   /**
