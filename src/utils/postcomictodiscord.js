@@ -1,12 +1,4 @@
 async function PostComicToDiscord(client, channelId, comicDetail) {
-  // await client.channels.cache.get(channelId).send({
-  //   content: `Title: ${comicDetail.Title}\n Number: ${comicDetail.Num}\n Link: <${comicDetail.Url}>`,
-  //   files: [{
-  //     attachment: String(comicDetail.Img),
-  //     name: 'file.jpg',
-  //     description: String(comicDetail.Alt_text),
-  //   }],
-  // });
   const exampleEmbed = {
     color: 0x0099ff,
     title: `xkcd #${comicDetail.Num}`,
