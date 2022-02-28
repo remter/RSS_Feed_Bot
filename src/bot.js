@@ -65,7 +65,6 @@ client.on('messageCreate', (message) => {
   if (command === 'latest') {
     (async () => {
       const feed = await parser.parseURL(RSS_URL);
-      // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
       const res = Formatter(feed.items[0]);
 
       PostComicToDiscord(client, rChannel, res);
@@ -103,7 +102,6 @@ client.on('ready', (c) => {
 const xkcdJob = new cron.CronJob('15 52 16 * * *', (() => {
   (async () => {
     const feed = await parser.parseURL(RSS_URL);
-    // const res = feed.items[0].content.match(/(?<=src=).*\.(jpg|jpeg|png|gif)/gi);"
     const res = Formatter(feed.items[0]);
 
     PostComicToDiscord(client, channelId, res);
