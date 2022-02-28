@@ -99,7 +99,7 @@ client.on('ready', (c) => {
 });
 
 // Create new job which is supposed to run at 20:25:00 everyday.
-const xkcdJob = new cron.CronJob('15 52 16 * * *', (() => {
+const xkcdJob = new cron.CronJob('20 25 00 * * *', (() => {
   (async () => {
     const feed = await parser.parseURL(RSS_URL);
     const res = Formatter(feed.items[0]);
