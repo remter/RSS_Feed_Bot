@@ -20,6 +20,9 @@ const prefix = '+';
 // Create new Parser
 const parser = new Parser();
 
+// sleep timer. useful for spacing out discord messages.
+const sleep = (ms) => new Promise((res) => { setTimeout(res, ms); });
+
 // Instantiate Feed Checker/DB
 const feedchecker = new FeedChecker();
 
@@ -101,7 +104,7 @@ client.on('messageCreate', (message) => {
         return;
       }
 
-      console.debug('formatter', newItems[0]);
+      console.debug('newItems', newItems);
 
       // There should only be one item if checkFeed is regularly scheduled.
       newItems.forEach(async (item) => {
@@ -113,6 +116,7 @@ client.on('messageCreate', (message) => {
             description: `${formattedComic.Alt_text}`,
           }],
         });
+        await sleep(500);
       });
     })();
   }
@@ -142,6 +146,7 @@ const xkcdJob = new cron.CronJob('00 00,30 * * * 1,3,5', (() => {
         }],
       });
     });
+    await sleep(500);
   })();
 }), null, true, 'America/Los_Angeles');
 
