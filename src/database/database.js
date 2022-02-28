@@ -47,6 +47,7 @@ const Database = {
   async getUnreadAndMark(feedUrl) {
     const unread = this._feeds[feedUrl].items.filter((i) => !i.isRead);
     unread.forEach((i) => { i.isRead = true; });
+    this.syncToFile();
     return unread;
   },
 
@@ -71,7 +72,6 @@ const Database = {
       // TODO: handle case if guid does not exist
       feed.items.forEach((i) => {
         if (!this._includesItemByGuid(feedUrl, i.guid)) {
-          console.debug('new item', i);
           this._feeds[feedUrl].items.push({ ...i, isRead: false });
         }
       });
